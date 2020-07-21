@@ -1,12 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Document, Page } from "react-pdf";
 import "./Pdf.css";
+import { createUseStyles } from "react-jss";
 import VirtualList from "react-tiny-virtual-list";
-// import { Document, Page } from "react-pdf/dist/entry.webpack";
-import pdfdoc from "../docs/PPTXtest.pptx.pdf";
+import pdfdoc from "../docs/Health2020-Long.pdf";
 import { pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
-const PAGE_HEIGHT = document.documentElement.clientHeight;
+const PAGE_HEIGHT = document.documentElement.clientHeight - 74;
+
+const useStyles = createUseStyles({
+    main: {
+        backgroundColor: "#333",
+    },
+    pdfjs: {
+        display: "inline-block",
+        marginTop: 70,
+        width: "100%",
+    },
+    buttons: {
+        position: "fixed",
+        "z-index": 1,
+        backgroundColor: "#333",
+        width: "100%",
+        height: "70px",
+        "& div": {
+            marginTop: "23px",
+        },
+    },
+    "react-pdf__Page__canvas": {
+        marginLeft: "auto",
+        marginRight: "auto",
+    },
+});
 
 export default function Pdf() {
     const [numPages, setNumPages] = useState(null);
@@ -14,7 +39,8 @@ export default function Pdf() {
     const [array, setArray] = useState([]);
     let [zoom, setZoom] = useState(1);
     let [rotateArr, setRotateArr] = useState([]);
-    
+    let [scrollTo, setScrollTo] = useState(0);
+
     function onDocumentLoadSuccess({ numPages }) {
         setArray(Array.apply(null, Array(numPages)).map((x, i) => i));
         setRotateArr(Array.apply(null, Array(numPages)).map(() => 0));
@@ -55,35 +81,21 @@ export default function Pdf() {
     };
 
     const scroll = (e) => {
-        setPageNumber((e / 700 + 1).toFixed());
+        setPageNumber((e / PAGE_HEIGHT + 1).toFixed());
     };
 
-    const handleChange = (e) => {
-        setPageNumber(e.target.value);
-        // console.log("e: ", e.target.value);
-        // if (e.target.value === "") {
-        //     console.log("pageNumber: ", pageNumber);
-        //     document
-        //         .querySelector(`div[data-page-number='${pageNumber}']`)
-        //         .scrollIntoView();
-        // }
-        // document
-        //     .querySelector(`div[data-page-number='${e.target.value}']`)
-        //     .scrollIntoView();
-        // console.log(e.target.value);
-        // if (e.target.value >= 1 && e.target.value <= numPages) {
-        //     setPageNumber(parseInt(e.target.value));
-        //     console.log("pag num", pageNumber);
-        //     console.log(pageNumber, e.target.value);
-        //     document
-        //         .querySelector(`div[data-page-number='${e.target.value}']`)
-        //         .scrollIntoView();
-        // }
+    const handleChange = ({ target: { value } }) => {
+        if (parseInt(value) > 0 && parseInt(value) <= numPages) {
+            setScrollTo(value);
+            setPageNumber(value);
+        }
     };
+
+    const classes = useStyles();
 
     return (
-        <div>
-            <div className="buttons">
+        <div className={classes.main}>
+            <div className={classes.buttons}>
                 <div>
                     <button onClick={zoomOut}>Zoom Out</button>
                     <button onClick={zoomIn}>Zoom In</button>
@@ -93,23 +105,26 @@ export default function Pdf() {
                         type="number"
                         name="name"
                         onChange={handleChange}
-                        placeholder="Enter Page"
+                        placeholder={`Page ${pageNumber} of ${numPages}`}
                     />
+                    <button disabled>
+                        Page {pageNumber} of {numPages}
+                    </button>
                 </div>
             </div>
-            <div className="pdfjs">
+            <div className={classes.pdfjs}>
                 <Document file={pdfdoc} onLoadSuccess={onDocumentLoadSuccess}>
                     <VirtualList
                         width="100%"
-                        height={700}
+                        height={PAGE_HEIGHT}
                         itemCount={array.length}
-                        itemSize={700} // Also supports variable heights (array or function getter)
-                        scrollToIndex={pageNumber}
+                        itemSize={PAGE_HEIGHT} // Also supports variable heights (array or function getter)
                         onScroll={scroll}
+                        scrollToIndex={scrollTo ? scrollTo - 1 : null}
+                        scrollToAlignment={"center"}
                         renderItem={({ index, style }) => (
                             <div key={index} style={style}>
                                 <Page
-                                    // id={id++}
                                     pageNumber={index + 1}
                                     scale={zoom}
                                     rotate={rotateArr[pageNumber - 1] % 360}

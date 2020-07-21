@@ -1,5 +1,4 @@
-.pdfjs {
-    /* margin-left: auto; */
+/* .pdfjs {
     display: inline-block;
     margin-top: 70px;
     width: 100%;
@@ -7,7 +6,6 @@
 
 .buttons {
     position: fixed;
-    /* left: 50%; */
     z-index: 1;
     background-color: #4b5560;
     width: 100%;
@@ -16,7 +14,7 @@
 
 .buttons div {
     margin-top: 23px;
-}
+} */
 
 .react-pdf__Page__canvas {
     margin-left: auto;
