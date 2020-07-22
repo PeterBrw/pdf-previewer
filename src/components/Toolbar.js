@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "./Toolbar.css";
 import { createUseStyles } from "react-jss";
 
-import { initialCache } from "../index";
+import { documentMutation } from "../operations/mutations/index";
+
 import { useQuery, gql } from "@apollo/client";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -32,17 +33,57 @@ const useStyles = createUseStyles({
 });
 
 const Toolbar = () => {
-    const { data, loading } = useQuery(
+    let {
+        data: {
+            documentInfo: { pageNumber, rotateArr, zoom },
+        },
+        loading,
+    } = useQuery(
         gql`
             query {
-                initial @client
+                documentInfo @client {
+                    pageNumber
+                    rotateArr
+                    zoom
+                }
             }
         `
     );
 
-    const toConsole = () => {
-        console.log(data.initial);
+    const rotateRight = () => {
+        documentMutation.setRotateArr(
+            rotateArr.map((element, index) => {
+                if (index === pageNumber - 1) {
+                    return element + 90;
+                }
+                return element;
+            })
+        );
+        console.log(rotateArr);
     };
+
+    const rotateLeft = () => {
+        documentMutation.setRotateArr(
+            rotateArr.map((element, index) => {
+                if (index === pageNumber - 1) {
+                    return element + 270;
+                }
+                return element;
+            })
+        );
+        console.log(rotateArr);
+    };
+
+    const zoomOut = () => {
+        console.log(zoom);
+        documentMutation.setZoom((zoom -= 0.1));
+        console.log(zoom);
+    };
+    const zoomIn = () => {
+        documentMutation.setZoom((zoom += 0.1));
+    };
+
+    useEffect(() => console.log(pageNumber));
 
     const classes = useStyles();
 
@@ -51,14 +92,24 @@ const Toolbar = () => {
     ) : (
         <div className={classes.tool}>
             <div className={classes.divTool}>
-                <FontAwesomeIcon icon={faMinus}></FontAwesomeIcon>
+                <FontAwesomeIcon
+                    icon={faMinus}
+                    onClick={zoomOut}
+                ></FontAwesomeIcon>
 
-                <FontAwesomeIcon icon={faPlus}></FontAwesomeIcon>
-                <FontAwesomeIcon icon={faUndo}></FontAwesomeIcon>
+                <FontAwesomeIcon
+                    icon={faPlus}
+                    onClick={zoomIn}
+                ></FontAwesomeIcon>
+                <FontAwesomeIcon
+                    icon={faUndo}
+                    onClick={rotateLeft}
+                ></FontAwesomeIcon>
 
                 <FontAwesomeIcon
                     icon={faUndo}
                     className={classes.flip}
+                    onClick={rotateRight}
                 ></FontAwesomeIcon>
             </div>
         </div>

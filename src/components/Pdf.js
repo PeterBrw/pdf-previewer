@@ -3,6 +3,9 @@ import { Document, Page } from "react-pdf";
 import "./Pdf.css";
 import { createUseStyles } from "react-jss";
 import VirtualList from "react-tiny-virtual-list";
+import { documentMutation } from "../operations/mutations/index";
+import { useQuery, gql } from "@apollo/client";
+
 import pdfdoc from "../docs/Health2020-Long.pdf";
 import { pdfjs } from "react-pdf";
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
@@ -34,60 +37,47 @@ const useStyles = createUseStyles({
 });
 
 export default function Pdf() {
+    let {
+        data: {
+            documentInfo: { pageNumber, rotateArr, zoom },
+        },
+        loading,
+    } = useQuery(
+        gql`
+            query {
+                documentInfo @client {
+                    pageNumber
+                    rotateArr
+                    zoom
+                }
+            }
+        `
+    );
     const [numPages, setNumPages] = useState(null);
-    let [pageNumber, setPageNumber] = useState(1);
+    // let [pageNumber, setPageNumber] = useState(1);
     const [array, setArray] = useState([]);
-    let [zoom, setZoom] = useState(1);
-    let [rotateArr, setRotateArr] = useState([]);
+    // let [zoom, setZoom] = useState(1);
     let [scrollTo, setScrollTo] = useState(0);
 
     function onDocumentLoadSuccess({ numPages }) {
         setArray(Array.apply(null, Array(numPages)).map((x, i) => i));
-        setRotateArr(Array.apply(null, Array(numPages)).map(() => 0));
+        documentMutation.setRotateArr(
+            Array.apply(null, Array(numPages)).map(() => 0)
+        );
         setNumPages(numPages);
     }
 
-    const zoomOut = () => {
-        setZoom((zoom -= 0.1));
-    };
-    const zoomIn = () => {
-        setZoom((zoom += 0.1));
-    };
-
-    const rotateRight = () => {
-        setRotateArr(
-            rotateArr.map((element, index) => {
-                if (index === pageNumber - 1) {
-                    console.log("hey");
-                    return element + 90;
-                }
-                return element;
-            })
+    const onScroll = (scrollOffset) => {
+        documentMutation.setPageNumber(
+            (scrollOffset / PAGE_HEIGHT + 1).toFixed()
         );
-        console.log(rotateArr);
-    };
-
-    const rotateLeft = () => {
-        setRotateArr(
-            rotateArr.map((element, index) => {
-                if (index === pageNumber - 1) {
-                    console.log("not working");
-                    return element + 270;
-                }
-                return element;
-            })
-        );
-        console.log(rotateArr);
-    };
-
-    const scroll = (e) => {
-        setPageNumber((e / PAGE_HEIGHT + 1).toFixed());
+        // setPageNumber(data.documentInfo.pageNumber);
     };
 
     const handleChange = ({ target: { value } }) => {
         if (parseInt(value) > 0 && parseInt(value) <= numPages) {
             setScrollTo(value);
-            setPageNumber(value);
+            // setPageNumber(value);
         }
     };
 
@@ -97,10 +87,18 @@ export default function Pdf() {
         <div className={classes.main}>
             <div className={classes.buttons}>
                 <div>
-                    <button onClick={zoomOut}>Zoom Out</button>
-                    <button onClick={zoomIn}>Zoom In</button>
-                    <button onClick={rotateLeft}>Rotate Left</button>
-                    <button onClick={rotateRight}>Rotate Right</button>
+                    <button onClick={() => console.log("zoom out")}>
+                        Zoom Out
+                    </button>
+                    <button onClick={() => console.log("zoom out")}>
+                        Zoom In
+                    </button>
+                    <button onClick={() => console.log("rotate left")}>
+                        Rotate Left
+                    </button>
+                    <button onClick={() => console.log("rotate right")}>
+                        Rotate Right
+                    </button>
                     <input
                         type="number"
                         name="name"
@@ -119,7 +117,7 @@ export default function Pdf() {
                         height={PAGE_HEIGHT}
                         itemCount={array.length}
                         itemSize={PAGE_HEIGHT} // Also supports variable heights (array or function getter)
-                        onScroll={scroll}
+                        onScroll={onScroll}
                         scrollToIndex={scrollTo ? scrollTo - 1 : null}
                         scrollToAlignment={"center"}
                         renderItem={({ index, style }) => (
@@ -138,6 +136,3 @@ export default function Pdf() {
     );
 }
 
-// <p>
-// Page {pageNumber} of {numPages}
-// </p>
