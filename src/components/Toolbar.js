@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import "./Toolbar.css";
 import { createUseStyles } from "react-jss";
 
@@ -59,7 +59,6 @@ const Toolbar = () => {
                 return element;
             })
         );
-        console.log(rotateArr);
     };
 
     const rotateLeft = () => {
@@ -71,19 +70,15 @@ const Toolbar = () => {
                 return element;
             })
         );
-        console.log(rotateArr);
     };
 
     const zoomOut = () => {
-        console.log(zoom);
         documentMutation.setZoom((zoom -= 0.1));
-        console.log(zoom);
     };
+
     const zoomIn = () => {
         documentMutation.setZoom((zoom += 0.1));
     };
-
-    useEffect(() => console.log(pageNumber));
 
     const classes = useStyles();
 

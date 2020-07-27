@@ -23,6 +23,7 @@ const documentInfoInitialValues = {
     pageNumber: 1,
     rotateArr: [],
     zoom: 1,
+    doc: 1,
 };
 
 export const documentInfo = makeVar(documentInfoInitialValues);
